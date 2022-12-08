@@ -1,0 +1,268 @@
+%\usepackage[nomarkers,notablist,nofiglist]{endfloat}
+
+
+\documentclass[11pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{eurosym}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bbm}
+\usepackage{color}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{kbordermatrix}
+\usepackage{tikz}
+\usepackage{multirow, array}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage[margin=1in]{geometry}
+\usepackage[title]{appendix}
+\usepackage[ruled,lined,algonl]{algorithm2e}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2960}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{LastRevised=Sunday, November 27, 2022 21:35:24}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{<META NAME="DocumentShell" CONTENT="Standard LaTeX\Blank - Standard LaTeX Article">}
+%TCIDATA{Language=American English}
+%TCIDATA{CSTFile=40 LaTeX article.cst}
+%TCIDATA{ComputeDefs=
+%$V=\left( \left( 1\right) \mathbf{I}-\gamma \mathbf{C-\hat{C}}\right) ^{-1}%
+%\left[ \left( \mathbf{v}-\mathbf{Cv}-\mathbf{b}\right) \circ \mathbf{DG}+%
+%\mathbf{X}\right] .$
+%}
+
+
+\doublespacing
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows.meta}
+\tikzset{
+diagonal fill/.style 2 args={fill={rgb,255:red,118; green,219; blue,128}, path picture={
+\fill[#1, sharp corners] (path picture bounding box.south east) -|
+(path picture bounding box.center) -- cycle;}},
+reversed diagonal fill/.style 2 args={fill=yellow, path picture={
+\fill[#1, sharp corners] (path picture bounding box.center) |-
+(path picture bounding box.south east) -- cycle;}}
+}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{acknowledgement}{Acknowledgement}[section]
+\newtheorem{axiom}{Axiom}[section]
+\newtheorem{case}{Case}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{conclusion}{Conclusion}[section]
+\newtheorem{condition}{Condition}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{criterion}{Criterion}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{notation}{Notation}[section]
+\newtheorem{problem}{Problem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{solution}{Solution}[section]
+\newtheorem{summary}{Summary}[section]
+\SetKwData{Left}{left}
+\SetKwData{This}{this}
+\SetKwData{Up}{up}
+\SetKwFunction{Union}{Union}
+\SetKwFunction{FindCompress}{FindCompress}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\allowdisplaybreaks
+\newenvironment{proof}[1][Proof]{\noindent\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+\numberwithin{equation}{section}
+\graphicspath{ {graphs/} }
+\newcommand\mycaption[2]{\caption{#1\newline\small#2}}
+\input{tcilatex}
+\begin{document}
+
+
+\section{Continuous-time Markov chain simulation}
+
+Simulation of a continuous-time Markov chain is a common technique, which
+can be found in numerous literature. We follow the standard stochastic
+simulation algorithm (SSA), also known as the Gillespie algorithm, which can
+be found in Gillespie (1976).
+
+The inputs for this algorithm are the current time $t$, the maturity time $T$%
+, current state of the Markov chain $\mathbf{s}_t$ and the transition rate
+matrix $A^Q$.
+
+The output for this algorithm are two sequences $\Delta_{time} =\left\lbrace
+t_0,\ldots t_n \right\rbrace $ and $\Delta_{state}\left\lbrace \mathbf{s}%
+_0,\ldots \mathbf{s}_n\right\rbrace $, $n\in \mathbb{N}_0$, representing the
+transition time points and the states of the Markov chain, respectively. For
+the time sequence $\left\lbrace t_0,\ldots t_n \right\rbrace $, we have $%
+t_0=t$ denoting the current time and $t_1,\ldots, t_n<T$ denoting the time
+points of state transitions. Note that if $n=0$, there is no state
+transition during $\left[t,T \right]$. For the state sequence $\left\lbrace 
+\mathbf{s}_0,\ldots \mathbf{s}_n\right\rbrace$, we have $\mathbf{s}_{i}$
+denoting the state in the period $\left[ t_{i}, t_{i+1} \right] $ for $i\leq
+n-1$ and $\mathbf{s}_n$ denoting the state in the period $\left[ t_{n}, T %
+\right] $. Fig \ref{Fig:ctmc} shows a more intuitive the relationship
+between the two sequences.
+
+\begin{figure}[h]
+\begin{tikzpicture}
+		\draw (0,0) -- (15,0);
+		\draw(0,0) node[anchor=north] {$t_0=t$} -- (0,0.2);
+		\draw(0.75,1) node[anchor=south] {$\mathbf{s}_0=\mathbf{s}_t$} ;
+		\draw(3,1) node[anchor=south] {$\mathbf{s}_1$} ;
+		\draw(10.5,1) node[anchor=south] {$\mathbf{s}_{n-1}$} ;
+		\draw(13,1) node[anchor=south] {$\mathbf{s}_{n}$} ;
+		\draw(1.5,0) node[anchor=north] {$t_1$} -- (1.5,0.2);
+		\draw(5,0) node[anchor=north] {$t_2$} -- (5,0.2);
+		\draw(7.5,0) node[anchor=north] {... ...} ;
+		\draw(10,0) node[anchor=north] {$t_{n-1}$} -- (10,0.2) ;
+		\draw(11,0) node[anchor=north] {$t_{n}$} -- (11,0.2) ;
+		\draw(15,0) node[anchor=north] {$T$} -- (15,0.2) ;
+		%	\draw (2.5,-0.5) node[anchor=north] {$Price_{1}(t)$};
+		%	\draw[red,thick,->] (10,0)--(10,2);
+		%	\draw (10,2)node[anchor=south] {$K(1+c(T-t))1_{\{\tau>T\}}$};
+	\end{tikzpicture}
+\caption{An example of a sample path of the continuous time Markov chain}
+\label{Fig:ctmc}
+\end{figure}
+
+\section{The algorithm}
+
+Following Duffie et al. (2000), we define the following functions:%
+\begin{eqnarray*}
+B\left( \cdot ,\cdot ,\cdot ,\cdot ;\mathbf{s}\right) &:&\mathbb{R}%
+_{+}\times \mathbb{R}_{+}\times \mathbb{R}^{3}\times \mathbb{R}%
+^{3}\rightarrow \mathbb{R}^{3}, \\
+C\left( \cdot ,\cdot ,\cdot ,\cdot ;\mathbf{s}\right) &:&\mathbb{R}%
+_{+}\times \mathbb{R}_{+}\times \mathbb{R}^{3}\times \mathbb{R}%
+^{3}\rightarrow \mathbb{R}, \\
+\mathcal{B}\left( \cdot ,\cdot ,\cdot ;\mathbf{s}\right) &:&\mathbb{R}%
+_{+}\times \mathbb{R}_{+}\times \mathbb{R}^{3}\rightarrow \mathbb{R}^{3}, \\
+\mathcal{C}\left( \cdot ,\cdot ,\cdot ,\cdot ,\cdot ;\mathbf{s}\right) &:&%
+\mathbb{R}_{+}\times \mathbb{R}_{+}\times \mathbb{R}^{3}\times \mathbb{R}%
+^{3}\times \mathbb{R}^{3}\rightarrow \mathbb{R},
+\end{eqnarray*}
+whose closed-form expressions can be readily obtained from their ODEs and
+boundary conditions/are provided in appendix. In this section, we are going
+to gave recursive algorithms for computing the four parts of the bond price
+conditional on the initial values of three risk factors $\mathbf{Y}_t=%
+\mathbf{y}$ and a sample path of the Markov chain $\Delta_{time}$ and $%
+\Delta_{state}$.
+
+\subsection{The final redemption if no event occurs before time $T$}
+
+Given the values of three risk factors at time $t$ and a sample path of the
+Markov chain, the price of this payment at time $t$ is%
+\begin{equation}
+KE^{Q}\left[ \left. \exp \left\{ -\int_{t}^{T}\left( r_{u}+\kappa \lambda
+_{u}\right) du\right\} \right\vert \mathbf{Y}_{t}=\mathbf{y},\Delta
+_{time},\Delta _{state}\right] .  \label{p1}
+\end{equation}%
+\begin{algorithm}
+	
+	\caption{Algorithm for evaluating equation \ref{p1}}
+	\Input{$K$, $\mathbf{y}$, $\Delta
+		_{time}$ and $\Delta _{state}$ } 
+	\Output{value of equation \ref{p1}}
+	\BlankLine
+	\emph{Initialization: $n \leftarrow \left| \Delta
+		_{time} \right|-1 $, $\mathbf{x}\leftarrow \left(0,0,0 \right)^\intercal $, $\boldsymbol{\phi}\leftarrow \left(\kappa,1,0 \right) $ }
+	\BlankLine
+	\eIf{n=0}{$\mathbf{B}_0 \leftarrow B\left(t_0,T,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_0 \right) $\\$C_0\leftarrow C\left(t_0,T,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_0 \right) $ \\ \Return{$K \exp \left\lbrace \mathbf{B}_0 \cdot \mathbf{y}+ C_0 \right\rbrace$} }
+	(\#\textit{in the case $n \geq 1$}){$\mathbf{B}_{n} \leftarrow H_{\mathbf{s}_{n-1},\mathbf{s}_{n}}B\left(t_n,T,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_n \right) $\\$C_n\leftarrow C\left(t_n,T,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_n \right) $\\$\mathbf{x}\leftarrow \mathbf{B}_n$\\ \For(\# \textit{if $n=1$ then this for loop will be automatically skipped}){$i\leftarrow $$n-1$ \KwTo $1$}{$\mathbf{B}_i \leftarrow H_{\mathbf{s}_{i-1},\mathbf{s}_{i}}   B\left(t_i,t_{i+1},\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_i \right) $\\$C_i\leftarrow C\left(t_i,t_{i+1},\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_i \right) $\\ $\mathbf{x}\leftarrow \mathbf{B}_i$}$\mathbf{B}_0 \leftarrow B\left(t_0,t_1,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_0 \right) $\\$C_0\leftarrow C\left(t_0,t_1,\boldsymbol{\phi}, \mathbf{x};\mathbf{s}_0 \right) $ \\\Return{$K\exp\left\lbrace \mathbf{B}_0\cdot \mathbf{y}+\sum_{i=0}^{n} C_i \right\rbrace $}}
+	
+	
+	
+	
+	\label{algo:p1}
+\end{algorithm}
+
+\subsection{The residual face value received if an event occurs before time $%
+T$}
+
+Given the values of three risk factors at time $t$ and a sample path of the
+Markov chain, the price of this payment at time $t$ is%
+\begin{equation}
+K\int_{t}^{T} \psi _{\mathbf{S}_{v}}E^{Q}\left[ \left. \kappa\lambda
+_{v}\exp \left\{ -\int_{t}^{v}\left( r_{u}+\kappa \lambda _{u}\right)
+du\right\} \right\vert \mathbf{Y}_{t}=\mathbf{y},\Delta _{time},\Delta
+_{state}\right] dv.  \label{p2}
+\end{equation}
+
+\begin{algorithm}
+	\caption{Algorithm for evaluating equation \ref{p2}}
+\Input{$K$, $\mathbf{y}$, $\Delta
+	_{time}$ and $\Delta _{state}$ } 
+\Output{value of equation \ref{p2}}
+\BlankLine
+%\emph{Initialization: $n \leftarrow \left| \Delta
+%	_{time} \right|-1 $, $\mathbf{x}\leftarrow \left(0,0,0 \right)^\intercal $, $\boldsymbol{\phi}\leftarrow \left(\kappa,1,0 \right) $ }
+\BlankLine
+$result\leftarrow 0$\\
+\For{$j\leftarrow 1$ \KwTo $100,000$}{
+\textbf{Step} 1: Draw $t^{*}\sim \text{Unif}\left(t,T \right) $
+\\ \textbf{Step} 2: Truncate $\Delta_{time} $ by discarding elements that is greater than $t^*$ and denote the truncated sequence by $\Delta^*_{time} $
+\\ \textbf{Step} 3: Truncate $\Delta_{state} $ to keep the first $\left| \Delta^*_{time} \right| $ elements and denote the truncated sequence by $\Delta^*_{state} $
+\\ \textbf{Step} 4: Set $n\leftarrow \left|\Delta^*_{time} \right|-1 $, $\mathbf{x}_1\leftarrow \left(0,0,0 \right)^\intercal $,$\mathbf{x}_2\leftarrow \left(\kappa,0,0 \right)^\intercal $ and $\boldsymbol{\phi}\leftarrow \left(\kappa,1,0 \right) $
+\\ \textbf{Step} 5: \\
+\eIf{$n=0$}{
+	$\mathbf{B}_0\leftarrow B\left(t_0,t^*, \boldsymbol{\phi},\mathbf{x}_1;\mathbf{s}_0\right) $\\
+$C_0\leftarrow C\left(t_0,t^*, \boldsymbol{\phi},\mathbf{x}_1;\mathbf{s}_0\right) $\\
+$\boldsymbol{\mathcal{B}}_0\leftarrow \mathcal{B}\left(t_0,t^*, \mathbf{x}_2;\mathbf{s}_0\right) $\\
+$\mathcal{C}_0\leftarrow \mathcal{C}\left(t_0,t^*, \boldsymbol{\phi},\mathbf{x}_1,\mathbf{x}_2;\mathbf{s}_0\right) $\\
+$result\leftarrow result+ \psi_{\mathbf{s}_0}\left( \mathcal{C}_0+\boldsymbol{\mathcal{B}_0 \cdot \mathbf{y}}\right) \exp\{\mathbf{B}_0\cdot \mathbf{y}+ C_0 \}$}
+{
+$\mathbf{B}_{n} \leftarrow H_{\mathbf{s}_{n-1},\mathbf{s}_{n}}B\left(t_n,t^*,\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_n \right) $\\
+$C_n\leftarrow C\left(t_n,t^*,\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_n \right) $\\
+$\boldsymbol{\mathcal{B}}_{n} \leftarrow H_{\mathbf{s}_{n-1},\mathbf{s}_{n}}\mathcal{B}\left(t_n,t^*, \mathbf{x}_2;\mathbf{s}_n \right) $\\
+$\mathcal{C}_n\leftarrow \mathcal{C}\left(t_n,t^*,\boldsymbol{\phi}, \mathbf{x}_1, \mathbf{x}_2;\mathbf{s}_n \right) $
+
+$\mathbf{x}_1\leftarrow \mathbf{B}_n$ and $\mathbf{x}_2\leftarrow \boldsymbol{\mathcal{B}}_n$
+
+
+
+
+\For%(\# \textit{if $n=1$ then this for loop will be automatically skipped})
+{$i\leftarrow $$n-1$ \KwTo $1$}
+{$\mathbf{B}_i \leftarrow H_{\mathbf{s}_{i-1},\mathbf{s}_{i}}   B\left(t_i,t_{i+1},\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_i \right) $
+	
+$C_i\leftarrow C\left(t_i,t_{i+1},\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_i \right) $
+
+$\boldsymbol{\mathcal{B}}_i \leftarrow H_{\mathbf{s}_{i-1},\mathbf{s}_{i}}   \mathcal{B}\left(t_i,t_{i+1}, \mathbf{x}_2;\mathbf{s}_i \right) $
+
+$\mathcal{C}_i\leftarrow \mathcal{C}\left(t_i,t_{i+1},\boldsymbol{\phi}, \mathbf{x}_1, e^{C_{i+1}}\mathbf{x}_2 ;\mathbf{s}_i \right) $
+	
+$\mathbf{x}_1\leftarrow \mathbf{B}_i$, and $\mathbf{x}_2\leftarrow \boldsymbol{\mathcal{B}}_i$}
+$\mathbf{B}_0 \leftarrow B\left(t_0,t_1,\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_0 \right) $
+
+$C_0\leftarrow C\left(t_0,t_1,\boldsymbol{\phi}, \mathbf{x}_1;\mathbf{s}_0 \right) $ 
+
+$\boldsymbol{\mathcal{B}}_0 \leftarrow \mathcal{B}\left(t_0,t_{1}, \mathbf{x}_2;\mathbf{s}_0 \right) $
+
+$\mathcal{C}_0\leftarrow \mathcal{C}\left(t_0,t_{1},\boldsymbol{\phi}, \mathbf{x}_1, e^{C_{1}}\mathbf{x}_2 ;\mathbf{s}_0 \right) $
+
+$result\leftarrow result+ \psi_{\mathbf{s}_n}\left( \sum_{i=0}^{n} \mathcal{C}_i \exp \{\mathbf{B}_0\cdot \mathbf{y}+ \sum_{j=0}^{i} C_j\}+ \exp\{\mathbf{B}_0\cdot \mathbf{y} +C_0\}\left(\boldsymbol{\mathcal{B}_0 \cdot \mathbf{y}} \right)\right)  $
+%\Return{$K\exp\left\lbrace \mathbf{B}_0\cdot \mathbf{y}+\sum_{i=0}^{n} C_i \right\rbrace $}
+
+
+
+
+
+}
+
+
+}
+
+\Return{$\left(T-t \right)\frac{result}{100,000}$ }
+
+\label{algo:p2}
+\end{algorithm}
+\end{document}
